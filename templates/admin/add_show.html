@@ -1,0 +1,43 @@
+<!-- templates/admin/add_show.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">Add Show</h1>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Event</label>
+                    <select name="event_id" class="form-select" required>
+                        <option value="">Select Event</option>
+                        {% for event in events %}
+                        <option value="{{ event.event_id }}">{{ event.event_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Venue</label>
+                    <select name="venue_id" class="form-select" required>
+                        <option value="">Select Venue</option>
+                        {% for venue in venues %}
+                        <option value="{{ venue.venue_id }}">{{ venue.venue_name }} - {{ venue.city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Show Date</label>
+                    <input type="date" name="show_date" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Show Time</label>
+                    <input type="time" name="show_time" class="form-control" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-gradient">Add Show</button>
+            <a href="{{ url_for('admin_shows') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

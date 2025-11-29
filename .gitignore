@@ -1,0 +1,12 @@
+# virtual environment
+/env
+env
+
+# environment variable
+.env
+
+# SQL script file for data population
+*.sql
+
+# any text documents in the project folder
+*.txt

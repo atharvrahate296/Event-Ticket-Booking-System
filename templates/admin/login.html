@@ -1,0 +1,31 @@
+<!-- templates/admin/login.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">Admin Login</h2>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-gradient w-100">Login</button>
+                </form>
+                <p class="text-center mt-3">
+                    Not registered? <a href="{{ url_for('admin_register') }}">Register here</a>
+                </p>
+                <p class="text-center mt-2">
+                    <a href="{{ url_for('admin_forgot_password') }}">Forgot Password?</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

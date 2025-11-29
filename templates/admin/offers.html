@@ -1,0 +1,56 @@
+<!-- templates/admin/offers.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Offers</h1>
+    <a href="{{ url_for('add_offer') }}" class="btn btn-gradient">
+        <i class="bi bi-plus-circle"></i> Add Offer
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Promo Code</th>
+                <th>Description</th>
+                <th>Discount</th>
+                <th>Valid Period</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer in offers %}
+            <tr>
+                <td><strong>{{ offer.promo_code }}</strong></td>
+                <td>{{ offer.description }}</td>
+                <td>
+                    {% if offer.discount_type == 'Percentage' %}
+                    {{ offer.discount_value }}%
+                    {% else %}
+                    ₹{{ offer.discount_value }}
+                    {% endif %}
+                    {% if offer.max_discount %}
+                    <br><small>Max: ₹{{ offer.max_discount }}</small>
+                    {% endif %}
+                </td>
+                <td>{{ offer.valid_from }} to {{ offer.valid_to }}</td>
+                <td>
+                    <span class="badge bg-{{ 'success' if offer.is_active else 'danger' }}">
+                        {{ 'Active' if offer.is_active else 'Inactive' }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('toggle_offer', offer_id=offer.offer_id) }}" 
+                       class="btn btn-sm btn-{{ 'warning' if offer.is_active else 'success' }}">
+                        {{ 'Deactivate' if offer.is_active else 'Activate' }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

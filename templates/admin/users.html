@@ -1,0 +1,44 @@
+<!-- templates/admin/users.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">Manage Users</h1>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>City</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.user_id }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.mobile }}</td>
+                <td>{{ user.city }}</td>
+                <td>
+                    <span class="badge bg-{{ 'danger' if user.is_blocked else 'success' }}">
+                        {{ 'Blocked' if user.is_blocked else 'Active' }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('toggle_user_block', user_id=user.user_id) }}" 
+                       class="btn btn-sm btn-{{ 'success' if user.is_blocked else 'danger' }}">
+                        {{ 'Unblock' if user.is_blocked else 'Block' }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

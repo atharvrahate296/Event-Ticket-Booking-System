@@ -1,0 +1,73 @@
+<!-- templates/user/events.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">Browse Events</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">City</label>
+                <select name="city" class="form-select">
+                    <option value="">All</option>
+                    {% for city in cities %}
+                    <option value="{{ city }}" {% if request.args.get('city') == city %}selected{% endif %}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" value="{{ request.args.get('date', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Language</label>
+                <select name="language" class="form-select">
+                    <option value="">All</option>
+                    {% for lang in languages %}
+                    <option value="{{ lang }}" {% if request.args.get('language') == lang %}selected{% endif %}>{{ lang }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for event in events %}
+    <div class="col-md-4 mb-4">
+        <div class="card event-card">
+            <img src="{{ event.poster_url }}" class="card-img-top event-poster" alt="{{ event.event_name }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ event.event_name }}</h5>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="bi bi-geo-alt"></i> {{ event.city }}<br>
+                        <i class="bi bi-tag"></i> {{ event.category }}
+                    </small>
+                </p>
+                <a href="{{ url_for('event_details', event_id=event.event_id) }}" class="btn btn-gradient w-100">
+                    View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

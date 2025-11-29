@@ -1,0 +1,89 @@
+<!-- templates/admin/bookings.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">Manage Bookings</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Event</label>
+                <select name="event_id" class="form-select">
+                    <option value="">All Events</option>
+                    {% for event in events %}
+                    <option value="{{ event.event_id }}">{{ event.event_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Venue</label>
+                <select name="venue_id" class="form-select">
+                    <option value="">All Venues</option>
+                    {% for venue in venues %}
+                    <option value="{{ venue.venue_id }}">{{ venue.venue_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-gradient">Filter</button>
+                <a href="{{ url_for('export_bookings') }}" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel"></i> Export to CSV
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Booking ID</th>
+                <th>User</th>
+                <th>Event</th>
+                <th>Date & Time</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.booking_id }}</td>
+                <td>{{ booking.user_name }}<br><small>{{ booking.email }}</small></td>
+                <td>{{ booking.event_name }}<br><small>{{ booking.venue_name }}</small></td>
+                <td>{{ booking.show_date }}<br>{{ booking.show_time }}</td>
+                <td>₹{{ booking.final_amount }}</td>
+                <td>
+                    <span class="badge bg-{{ 'success' if booking.status == 'Confirmed' else 'warning' if booking.status == 'Pending' else 'danger' }}">
+                        {{ booking.status }}
+                    </span>
+                </td>
+                <td>
+                    {% if booking.status == 'Confirmed' %}
+                    <a href="{{ url_for('admin_cancel_booking', booking_id=booking.booking_id) }}" 
+                       class="btn btn-sm btn-danger" 
+                       onclick="return confirm('Cancel this booking?')">Cancel</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

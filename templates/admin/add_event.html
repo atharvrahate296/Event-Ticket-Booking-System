@@ -1,0 +1,78 @@
+<!-- templates/admin/add_event.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">Add Event</h1>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Event Name</label>
+                    <input type="text" name="event_name" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select" required>
+                        <option value="Concert">Concert</option>
+                        <option value="Musical">Musical</option>
+                        <option value="Comedy">Comedy</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Theatre">Theatre</option>
+                        <option value="Classical">Classical</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Language</label>
+                    <input type="text" name="language" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Duration (minutes)</label>
+                    <input type="number" name="duration" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Age Rating</label>
+                    <select name="age_rating" class="form-select" required>
+                        <option value="U">U (Universal)</option>
+                        <option value="A">A (Adult)</option>
+                        <option value="UA">UA (Parental Guidance)</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Venue</label>
+                    <select name="venue_id" class="form-select" required>
+                        {% for venue in venues %}
+                        <option value="{{ venue.venue_id }}">{{ venue.venue_name }} - {{ venue.city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-control" required>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Poster URL</label>
+                    <input type="url" name="poster_url" class="form-control" required>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" name="is_featured" class="form-check-input">
+                        <label class="form-check-label">Mark as Featured</label>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-gradient">Add Event</button>
+            <a href="{{ url_for('admin_events') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

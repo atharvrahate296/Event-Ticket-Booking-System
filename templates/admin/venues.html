@@ -1,0 +1,51 @@
+<!-- templates/admin/venues.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Venues</h1>
+    <a href="{{ url_for('add_venue') }}" class="btn btn-gradient">
+        <i class="bi bi-plus-circle"></i> Add Venue
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Venue Name</th>
+                <th>City</th>
+                <th>Total Seats</th>
+                <th>Seat Classes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venue in venues %}
+            <tr>
+                <td>{{ venue.venue_id }}</td>
+                <td>{{ venue.venue_name }}</td>
+                <td>{{ venue.city }}</td>
+                <td>{{ venue.total_seats }}</td>
+                <td>
+                    <small>
+                        Silver: {{ venue.silver_seats }} (₹{{ venue.silver_price }})<br>
+                        Gold: {{ venue.gold_seats }} (₹{{ venue.gold_price }})<br>
+                        Platinum: {{ venue.platinum_seats }} (₹{{ venue.platinum_price }})<br>
+                        VIP: {{ venue.vip_seats }} (₹{{ venue.vip_price }})
+                    </small>
+                </td>
+                <td>
+                    <a href="{{ url_for('edit_venue', venue_id=venue.venue_id) }}" 
+                       class="btn btn-sm btn-primary">Edit</a>
+                    <a href="{{ url_for('delete_venue', venue_id=venue.venue_id) }}" 
+                       class="btn btn-sm btn-danger" 
+                       onclick="return confirm('Delete this venue?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

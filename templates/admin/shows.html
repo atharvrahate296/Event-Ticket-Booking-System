@@ -1,0 +1,44 @@
+<!-- templates/admin/shows.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Shows</h1>
+    <a href="{{ url_for('add_show') }}" class="btn btn-gradient">
+        <i class="bi bi-plus-circle"></i> Add Show
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Show ID</th>
+                <th>Event</th>
+                <th>Venue</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for show in shows %}
+            <tr>
+                <td>{{ show.show_id }}</td>
+                <td>{{ show.event_name }}</td>
+                <td>{{ show.venue_name }}, {{ show.city }}</td>
+                <td>{{ show.show_date }}</td>
+                <td>{{ show.show_time }}</td>
+                <td>
+                    <a href="{{ url_for('cancel_show', show_id=show.show_id) }}" 
+                       class="btn btn-sm btn-danger" 
+                       onclick="return confirm('Cancel this show? All bookings will be cancelled.')">
+                        Cancel
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

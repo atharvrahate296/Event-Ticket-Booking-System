@@ -1,0 +1,108 @@
+<!-- templates/user/event_details.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <img src="{{ event.poster_url }}" class="img-fluid rounded shadow" alt="{{ event.event_name }}">
+    </div>
+    <div class="col-md-8">
+        <h1>{{ event.event_name }}</h1>
+        <p class="lead">{{ event.description }}</p>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong><i class="bi bi-geo-alt"></i> Venue:</strong> {{ event.venue_name }}</p>
+                <p><strong><i class="bi bi-map"></i> Location:</strong> {{ event.city }}</p>
+                <p><strong><i class="bi bi-tag"></i> Category:</strong> {{ event.category }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong><i class="bi bi-clock"></i> Duration:</strong> {{ event.duration }} mins</p>
+                <p><strong><i class="bi bi-translate"></i> Language:</strong> {{ event.language }}</p>
+                <p><strong><i class="bi bi-person-badge"></i> Age:</strong> {{ event.age_rating }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<h3 class="mb-4">Available Shows</h3>
+<div class="row">
+    {% for show in shows %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ show.venue_name }}</h5>
+                <p class="card-text">
+                    <i class="bi bi-calendar"></i> {{ show.show_date }}<br>
+                    <i class="bi bi-clock"></i> {{ show.show_time }}<br>
+                    <i class="bi bi-ticket"></i> {{ show.available_seats }} seats available
+                </p>
+                <a href="{{ url_for('book_show', show_id=show.show_id) }}" class="btn btn-gradient">
+                    Book Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<hr class="my-5">
+
+<h3 class="mb-4">Reviews</h3>
+<div class="mb-4">
+    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+        Write a Review
+    </button>
+</div>
+
+{% for review in reviews %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ review.user_name }}</h5>
+        <p class="text-warning">
+            {% for i in range(review.rating) %}
+            <i class="bi bi-star-fill"></i>
+            {% endfor %}
+        </p>
+        <p class="card-text">{{ review.review_text }}</p>
+        <small class="text-muted">{{ review.created_at }}</small>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Write Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('submit_review', event_id=event.event_id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <select name="rating" class="form-select" required>
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Review</label>
+                        <textarea name="review" class="form-control" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-gradient">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

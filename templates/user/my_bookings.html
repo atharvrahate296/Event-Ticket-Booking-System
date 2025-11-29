@@ -1,0 +1,38 @@
+<!-- templates/user/my_bookings.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">My Bookings</h1>
+
+{% for booking in bookings %}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-2">
+                <img src="{{ booking.poster_url }}" class="img-fluid rounded" alt="{{ booking.event_name }}">
+            </div>
+            <div class="col-md-7">
+                <h4>{{ booking.event_name }}</h4>
+                <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ booking.venue_name }}, {{ booking.city }}</p>
+                <p class="mb-1"><i class="bi bi-calendar"></i> {{ booking.show_date }} at {{ booking.show_time }}</p>
+                <p class="mb-1"><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
+                <p class="mb-1"><strong>Amount:</strong> ₹{{ booking.final_amount }}</p>
+                <p class="mb-1">
+                    <span class="badge bg-{{ 'success' if booking.status == 'Confirmed' else 'warning' if booking.status == 'Pending' else 'danger' }}">
+                        {{ booking.status }}
+                    </span>
+                </p>
+            </div>
+            <div class="col-md-3 text-end">
+                {% if booking.status == 'Confirmed' and booking.show_date >= today %}
+                <a href="{{ url_for('cancel_booking', booking_id=booking.booking_id) }}" 
+                   class="btn btn-danger" onclick="return confirm('Cancel this booking?')">
+                    Cancel Booking
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

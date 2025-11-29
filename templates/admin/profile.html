@@ -1,0 +1,36 @@
+<!-- templates/admin/profile.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h2 class="mb-4">Admin Profile</h2>
+                
+                <div class="alert alert-info">
+                    <strong>Admin ID:</strong> {{ admin.admin_id }}<br>
+                    <strong>Employee Code:</strong> {{ admin.emp_code }}<br>
+                    <strong>Username:</strong> {{ admin.username }}
+                </div>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" name="name" class="form-control" value="{{ admin.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mobile</label>
+                        <input type="tel" name="mobile" class="form-control" value="{{ admin.mobile }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ admin.email }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-gradient w-100">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

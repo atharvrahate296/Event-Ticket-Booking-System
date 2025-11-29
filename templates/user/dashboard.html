@@ -1,0 +1,88 @@
+<!-- templates/user/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .event-card {
+        transition: transform .2s;
+    }
+    .event-card:hover {
+        transform: scale(1.05);
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1>Welcome, {{ session.user_name }}!</h1>
+            <p>Discover and book tickets for your favorite events.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <form action="{{ url_for('browse_events') }}" method="get" class="row g-3">
+                <div class="col-md-9">
+                    <input type="text" name="search" class="form-control" placeholder="Search for events...">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2>Featured Events</h2>
+            <hr>
+            <div id="featured-events-carousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for event in events %}
+                        {% if event.is_featured %}
+                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                <img src="{{ event.poster_url }}" class="d-block w-100" alt="{{ event.event_name }}">
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>{{ event.event_name }}</h5>
+                                    <p>{{ event.description[:100] }}...</p>
+                                    <a href="{{ url_for('event_details', event_id=event.event_id) }}" class="btn btn-light btn-sm">View Details</a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#featured-events-carousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#featured-events-carousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2>Upcoming Events</h2>
+            <hr>
+        </div>
+        {% for event in events %}
+            <div class="col-md-4 mb-4">
+                <div class="card event-card">
+                    <img src="{{ event.poster_url }}" class="card-img-top" alt="{{ event.event_name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ event.event_name }}</h5>
+                        <p class="card-text">
+                            <strong><i class="bi bi-geo-alt-fill"></i> {{ event.city }}</strong><br>
+                            <small class="text-muted"><i class="bi bi-calendar-event"></i> {{ event.start_date.strftime('%d %b %Y') }}</small>
+                        </p>
+                        <a href="{{ url_for('event_details', event_id=event.event_id) }}" class="btn btn-outline-primary w-100">View Details</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

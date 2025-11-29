@@ -1,0 +1,59 @@
+<!-- templates/admin/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">Admin Dashboard</h1>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h2>{{ total_events }}</h2>
+            <p class="mb-0">Active Events</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h2>{{ total_bookings }}</h2>
+            <p class="mb-0">Total Bookings</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h2>₹{{ "%.2f"|format(total_revenue) }}</h2>
+            <p class="mb-0">Total Revenue</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h2>{{ total_tickets }}</h2>
+            <p class="mb-0">Tickets Sold</p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h4>Popular Events</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Bookings</th>
+                    <th>Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in popular_events %}
+                <tr>
+                    <td>{{ event.event_name }}</td>
+                    <td>{{ event.bookings }}</td>
+                    <td>₹{{ "%.2f"|format(event.revenue) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

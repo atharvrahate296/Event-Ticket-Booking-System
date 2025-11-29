@@ -1,0 +1,107 @@
+<!-- templates/user/book_show.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">Book Tickets</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3>{{ show.event_name }}</h3>
+                <p>
+                    <i class="bi bi-geo-alt"></i> {{ show.venue_name }}, {{ show.city }}<br>
+                    <i class="bi bi-calendar"></i> {{ show.show_date }}<br>
+                    <i class="bi bi-clock"></i> {{ show.show_time }}
+                </p>
+                
+                <hr>
+                
+                <form method="POST">
+                    <h5 class="mb-3">Select Seats</h5>
+                    
+                    <div class="row">
+                        {% for class, avail in available.items() %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>{{ class }}</h5>
+                                    <p>Available: {{ avail }} | Price: ₹{{ prices[class] }}</p>
+                                    <input type="number" name="{{ class.lower() }}_quantity" 
+                                           class="form-control seat-input" min="0" max="{{ avail }}" 
+                                           value="0" data-price="{{ prices[class] }}" data-class="{{ class }}">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5 class="mb-3">Have a Promo Code?</h5>
+                    <div class="mb-3">
+                        <input type="text" name="promo_code" class="form-control" 
+                               placeholder="Enter promo code">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-gradient btn-lg w-100">
+                        Proceed to Payment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow sticky-top" style="top: 20px;">
+            <div class="card-body">
+                <h5>Booking Summary</h5>
+                <hr>
+                <div id="summary">
+                    <p class="text-muted">Select seats to see summary</p>
+                </div>
+                <hr>
+                <h4>Total: ₹<span id="total">0</span></h4>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.seat-input');
+    const summary = document.getElementById('summary');
+    const totalSpan = document.getElementById('total');
+    
+    function updateSummary() {
+        let total = 0;
+        let items = [];
+        
+        inputs.forEach(input => {
+            const qty = parseInt(input.value) || 0;
+            if (qty > 0) {
+                const price = parseFloat(input.dataset.price);
+                const seatClass = input.dataset.class;
+                const subtotal = qty * price;
+                total += subtotal;
+                items.push(`${seatClass}: ${qty} × ₹${price} = ₹${subtotal}`);
+            }
+        });
+        
+        if (items.length > 0) {
+            summary.innerHTML = items.map(item => `<p class="mb-1">${item}</p>`).join('');
+        } else {
+            summary.innerHTML = '<p class="text-muted">Select seats to see summary</p>';
+        }
+        
+        totalSpan.textContent = total;
+    }
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', updateSummary);
+    });
+});
+</script>
+{% endblock %}
