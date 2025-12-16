@@ -5,31 +5,36 @@ A full-featured Flask-based event ticket booking system with user and admin func
 ## Features
 
 ### User Features
-- User registration and authentication
-- Browse events with filters (city, category, date, language)
-- View event details with shows and reviews
-- Book tickets with seat selection
-- Apply promo codes for discounts
-- Manage bookings (view, cancel)
-- Submit reviews and ratings
-- Profile management
+- **Registration & Auth:** Secure login/signup with password hashing.
+- **Event Discovery:** - Dashboard split into "Live & Upcoming" and "Past" events.
+  - Browse with filters (city, category, date, language).
+- **Booking:** - Book tickets with specific seat selection (Silver, Gold, Platinum, VIP).
+  - "Pay Now" option for pending bookings.
+  - **New:** Dedicated Payment Success screen with receipt generation.
+- **Ticket Management:**
+  - **New:** Download printable tickets with booking details.
+  - **New:** Password-protected cancellation system.
+- **Engagement:** - Submit reviews and ratings.
+  - **New:** Edit existing reviews.
+- **Profile:** Manage personal details and view booking history.
 
 ### Admin Features
-- Admin registration and authentication
-- Dashboard with statistics
-- Manage events (add, edit, activate/deactivate, feature)
-- Manage venues (add, edit, delete, configure seats)
-- Manage shows (create, cancel)
-- View and manage bookings
-- Create and manage promo codes
-- Block/unblock users
-- Export booking data to CSV
+- **Dashboard:** Real-time statistics, revenue tracking, and popular events.
+- **Event Management:** Add, edit, feature, and active/deactivate events.
+- **Venue Management:** Configure venues with specific seat layouts and pricing.
+- **Show Management:** - Schedule shows for events.
+  - **New:** Shows categorized into "Ongoing" and "Passed" for better organization.
+  - Cancel shows (auto-refunds bookings).
+- **Booking Operations:** View all bookings, override/cancel bookings, export data to CSV.
+- **Offers Management:** - Create promo codes.
+  - **New:** Edit existing offers and toggle activation.
+- **User Management:** Block/unblock users.
 
 ## Technology Stack
 - **Backend:** Python Flask
 - **Database:** MySQL
 - **Frontend:** Bootstrap 5, HTML, CSS, JavaScript
-- **Authentication:** Flask sessions with password hashing
+- **Authentication:** Flask sessions with Werkzeug security hashing
 
 ## Installation
 
@@ -59,16 +64,6 @@ source venv/bin/activate
 
 ### Step 3: Install Dependencies
 
-Create `requirements.txt`:
-
-```
-Flask==3.0.0
-Flask-MySQLdb==2.0.0
-mysqlclient==2.2.0
-Werkzeug==3.0.1
-```
-
-Install:
 
 ```bash
 pip install -r requirements.txt
@@ -88,7 +83,7 @@ USE ticket_booking;
 SOURCE database.sql;
 ```
 
-Or use the SQL file provided to create all tables and sample data.
+Or use the SQL file 'init_queries.sql' provided to create all tables and sample data.
 
 ### Step 5: Configure Database Connection
 
@@ -121,8 +116,12 @@ ticket-booking-system/
 │   │   ├── event_details.html
 │   │   ├── book_show.html
 │   │   ├── payment.html
+│   │   ├── payment_success.html  
 │   │   ├── my_bookings.html
-│   │   └── profile.html
+│   │   ├── ticket.html           
+│   │   ├── profile.html
+│   │   ├── forgot_password.html
+│   │   └── reset_password.html
 │   └── admin/
 │       ├── register.html
 │       ├── login.html
@@ -138,9 +137,12 @@ ticket-booking-system/
 │       ├── bookings.html
 │       ├── offers.html
 │       ├── add_offer.html
+│       ├── edit_offer.html       
 │       ├── users.html
-│       └── profile.html
-└── static/ (optional, for custom CSS/JS)
+│       ├── profile.html
+│       ├── forgot_password.html
+│       └── reset_password.html
+└── static/ (optional)
 ```
 
 ### Step 7: Run the Application
@@ -158,12 +160,14 @@ The application will run on `http://localhost:5000`
 1. **Register:** Go to `http://localhost:5000/user/register`
 2. **Login:** Use your email and password
 3. **Browse Events:** Filter by city, category, date, or language
-4. **Book Tickets:** 
-   - Select a show
+4. **Book Tickets:** - Select a show
    - Choose seat class and quantity
    - Apply promo code (optional)
    - Complete payment with a test transaction ID
-5. **Manage Bookings:** View upcoming and past bookings, cancel if needed
+   - **View and print payment receipt**
+5. **Manage Bookings:** - View upcoming and past bookings
+   - **Download/Print Tickets**
+   - Cancel bookings (requires password)
 
 ### For Admins
 
@@ -171,8 +175,8 @@ The application will run on `http://localhost:5000`
 2. **Login:** Use your username and password
 3. **Add Venue:** Define seat layout and pricing
 4. **Add Event:** Link to venue and set dates
-5. **Create Shows:** Schedule show times
-6. **Create Offers:** Add promo codes with discounts
+5. **Manage Shows:** Schedule show times (categorized by Ongoing/Passed)
+6. **Manage Offers:** Create and **Edit** promo codes
 7. **Manage:** Monitor bookings, users, and export data
 
 ## Default Sample Data
@@ -207,19 +211,21 @@ The database comes with sample data:
 
 ### Booking Flow
 1. User selects show and seats
-2. Applies promo code (optional)
+2. Applies promo code (validates expiry and limits)
 3. Reviews booking summary
 4. Enters transaction ID (simulated payment)
-5. Booking confirmed
+5. **Success Screen:** Displays receipt with print option
+6. **Ticket Generation:** Downloadable ticket available in dashboard
 
 ### Cancellation Policy
-- Users can cancel up to 2 hours before show time
+- Users can cancel up to **24 hours** before show time
+- **Security Check:** Users must enter their **account password** to confirm cancellation
 - Admins can override and cancel any booking
 
 ### Business Logic
 - Prevents double booking
 - Auto-updates seat counts
-- Validates promo codes
+- Validates promo codes (expiry and active status)
 - Auto-cancels bookings when show is cancelled
 
 ## Database Schema
@@ -246,14 +252,15 @@ The database comes with sample data:
 ### User Routes
 - `GET/POST /user/register` - User registration
 - `GET/POST /user/login` - User login
-- `GET /user/dashboard` - User dashboard
+- `GET /user/dashboard` - User dashboard (Split views)
 - `GET /user/events` - Browse events with filters
 - `GET /user/event/<id>` - Event details
 - `GET/POST /user/book/<show_id>` - Book show
 - `GET/POST /user/payment/<booking_id>` - Payment
+- `GET /user/ticket/<booking_id>` - **Download Ticket**
 - `GET /user/bookings` - My bookings
-- `GET /user/cancel/<booking_id>` - Cancel booking
-- `POST /user/review/<event_id>` - Submit review
+- `POST /user/cancel/<booking_id>` - Cancel booking (with password)
+- `POST /user/review/<event_id>` - Submit or Edit review
 - `GET/POST /user/profile` - User profile
 - `GET /user/logout` - Logout
 
@@ -275,6 +282,7 @@ The database comes with sample data:
 - `GET /admin/booking/cancel/<id>` - Cancel booking
 - `GET /admin/offers` - Manage offers
 - `GET/POST /admin/offer/add` - Add offer
+- `GET/POST /admin/offer/edit/<id>` - **Edit offer**
 - `GET /admin/offer/toggle/<id>` - Activate/deactivate
 - `GET /admin/users` - Manage users
 - `GET /admin/user/toggle/<id>` - Block/unblock user
@@ -297,15 +305,15 @@ The database comes with sample data:
 3. Select an event and view shows
 4. Book tickets with promo code WELCOME20
 5. Enter transaction ID: TEST123456
-6. View booking in "My Bookings"
-7. Submit a review for the event
+6. **Download Ticket** from "My Bookings"
+7. **Edit Review** for the event
 
 ### Test Admin Flow
 1. Register a new admin
 2. Add a new venue
 3. Add a new event linked to the venue
 4. Create shows for the event
-5. Create a promotional offer
+5. Create and **Edit** a promotional offer
 6. View booking statistics
 7. Export booking data
 
