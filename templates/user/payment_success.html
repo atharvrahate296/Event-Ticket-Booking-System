@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow border-0 overflow-hidden">
+            <div class="card-header bg-success text-white text-center py-4">
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+                </div>
+                <h4 class="mb-0 fw-bold">PAYMENT SUCCESSFUL</h4>
+                <div class="mt-3">
+                    <span class="badge bg-success-subtle text-success fs-2 px-4 py-2 rounded-3 border border-success-subtle" style="background: rgba(255,255,255,0.2) !important; color: white !important;">
+                        ₹{{ booking.final_amount }}
+                    </span>
+                </div>
+                <div class="mt-2 small text-white-50">Transaction ID: #{{ transaction_id }}</div>
+            </div>
+
+            <div class="card-body p-4 bg-light">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted text-uppercase fw-bold">Payer Details</small>
+                        <p class="mb-0 fw-bold">{{ session.user_name }}</p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <small class="text-muted text-uppercase fw-bold">Payment Info</small>
+                        <p class="mb-0">Date: {{ booking.show_date }}</p>
+                        <p class="mb-0 text-success fw-bold">Completed</p>
+                    </div>
+                </div>
+
+                <hr class="text-muted">
+
+                <div class="mb-4">
+                    <small class="text-muted text-uppercase fw-bold mb-2 d-block">Booking Details</small>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Event</span>
+                        <span class="fw-bold">{{ booking.event_name }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Venue</span>
+                        <span class="fw-bold">{{ booking.venue_name }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Show Time</span>
+                        <span class="fw-bold">{{ booking.show_time }}</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted text-uppercase fw-bold mb-2 d-block">Payment Breakdown</small>
+                    {% for seat in seats %}
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>{{ seat.seat_class }} Seat (x{{ seat.quantity }})</span>
+                        <span>₹{{ seat.price_per_seat * seat.quantity }}</span>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if booking.discount > 0 %}
+                    <div class="d-flex justify-content-between text-success mb-1">
+                        <span>Discount Applied</span>
+                        <span>-₹{{ booking.discount }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Total Paid</h5>
+                    <h4 class="fw-bold text-success mb-0">₹{{ booking.final_amount }}</h4>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button onclick="window.print()" class="btn btn-outline-dark btn-lg">
+                        <i class="bi bi-printer"></i> Print Receipt
+                    </button>
+                    <a href="{{ url_for('my_bookings') }}" class="btn btn-primary btn-lg">
+                        Go to My Bookings
+                    </a>
+                </div>
+                
+                <p class="text-center text-muted small mt-3 mb-0">
+                    This is a computer generated receipt. TicketMaster Ltd.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .card, .card * {
+            visibility: visible;
+        }
+        .card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            box-shadow: none !important;
+        }
+        .btn {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

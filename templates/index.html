@@ -1,36 +1,87 @@
-<!--templates/index.html-->
+<!-- extends base.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row align-items-center" style="min-height: 60vh;">
-    <div class="col-lg-6">
-        <h1 class="display-3 fw-bold mb-4">Book Your Favorite Events</h1>
-        <p class="lead mb-4">Discover and book tickets for concerts, shows, sports, and more!</p>
-        <div>
-            <a href="{{ url_for('user_login') }}" class="btn btn-gradient btn-lg me-3">Get Started</a>
-            <a href="{{ url_for('user_register') }}" class="btn btn-outline-primary btn-lg">Register Now</a>
+<section class="hero-section text-center py-5 mb-5" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 20px;">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-lg-start">
+                <h1 class="display-4 fw-bold mb-4 text-dark">Experience the Best <span class="text-primary">Live Events</span></h1>
+                <p class="lead mb-4 text-secondary">Your one-stop destination for concerts, theater, sports, and workshops. Book your seats today and create memories that last forever.</p>
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{{ url_for('user_login') }}" class="btn btn-primary btn-lg px-4 me-md-2 shadow-sm">Book Now</a>
+                    <a href="{{ url_for('user_register') }}" class="btn btn-outline-dark btn-lg px-4">Create Account</a>
+                </div>
+            </div>
+            <div class="col-lg-6 mt-4 mt-lg-0">
+                <div class="position-relative">
+                    <i class="bi bi-music-note-beamed display-1 text-primary opacity-25 position-absolute top-0 start-0 translate-middle"></i>
+                    <i class="bi bi-ticket-perforated-fill" style="font-size: 12rem; color: #667eea; text-shadow: 2px 2px 20px rgba(102,126,234,0.3);"></i>
+                    <i class="bi bi-calendar-event display-1 text-warning opacity-25 position-absolute bottom-0 end-0 translate-middle"></i>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-lg-6 text-center">
-        <i class="bi bi-ticket-perforated" style="font-size: 15rem; color: #667eea;"></i>
+</section>
+
+<div class="container mb-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Why Choose Us?</h2>
+        <p class="text-muted">We make booking simple, secure, and fast.</p>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-shadow transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box mb-3 mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="bi bi-search text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title">Easy Discovery</h4>
+                    <p class="card-text text-muted">Find events happening in your city with our advanced search filters by category, date, or language.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-shadow transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box mb-3 mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title">Secure Booking</h4>
+                    <p class="card-text text-muted">Book your seats with confidence using our secure payment integration and instant confirmation.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-shadow transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box mb-3 mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="bi bi-qr-code-scan text-info" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title">Paperless Entry</h4>
+                    <p class="card-text text-muted">No need to print! Just show your digital QR code ticket at the venue entrance for hassle-free access.</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row mt-5">
-    <div class="col-md-4 text-center mb-4">
-        <i class="bi bi-search" style="font-size: 4rem; color: #667eea;"></i>
-        <h3 class="mt-3">Browse Events</h3>
-        <p>Discover events happening near you</p>
+<section class="bg-dark text-white rounded-3 p-5 mb-5 text-center position-relative overflow-hidden">
+    <div class="position-relative z-1">
+        <h2 class="fw-bold mb-3">Don't Miss Out!</h2>
+        <p class="lead mb-4">Join thousands of users who book their favorite events with us every day.</p>
+        <a href="{{ url_for('user_register') }}" class="btn btn-light btn-lg rounded-pill px-5">Join Now for Free</a>
     </div>
-    <div class="col-md-4 text-center mb-4">
-        <i class="bi bi-calendar-check" style="font-size: 4rem; color: #667eea;"></i>
-        <h3 class="mt-3">Book Tickets</h3>
-        <p>Secure your seats in minutes</p>
-    </div>
-    <div class="col-md-4 text-center mb-4">
-        <i class="bi bi-qr-code" style="font-size: 4rem; color: #667eea;"></i>
-        <h3 class="mt-3">Enjoy Event</h3>
-        <p>Show your ticket and enjoy</p>
-    </div>
-</div>
+    <i class="bi bi-people-fill position-absolute top-50 start-0 translate-middle opacity-10" style="font-size: 15rem;"></i>
+</section>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+</style>
 {% endblock %}

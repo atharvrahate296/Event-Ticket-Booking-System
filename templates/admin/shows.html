@@ -1,4 +1,3 @@
-<!-- templates/admin/shows.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -9,36 +8,80 @@
     </a>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Show ID</th>
-                <th>Event</th>
-                <th>Venue</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for show in shows %}
-            <tr>
-                <td>{{ show.show_id }}</td>
-                <td>{{ show.event_name }}</td>
-                <td>{{ show.venue_name }}, {{ show.city }}</td>
-                <td>{{ show.show_date }}</td>
-                <td>{{ show.show_time }}</td>
-                <td>
-                    <a href="{{ url_for('cancel_show', show_id=show.show_id) }}" 
-                       class="btn btn-sm btn-danger" 
-                       onclick="return confirm('Cancel this show? All bookings will be cancelled.')">
-                        Cancel
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="card mb-5 border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h4 class="mb-0 text-success"><i class="bi bi-broadcast"></i> Ongoing & Upcoming Shows</h4>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Event</th>
+                        <th>Venue</th>
+                        <th>Date & Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for show in ongoing_shows %}
+                    <tr>
+                        <td>{{ show.show_id }}</td>
+                        <td class="fw-bold">{{ show.event_name }}</td>
+                        <td>{{ show.venue_name }}, {{ show.city }}</td>
+                        <td>
+                            <i class="bi bi-calendar"></i> {{ show.show_date }}<br>
+                            <i class="bi bi-clock"></i> {{ show.show_time }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('cancel_show', show_id=show.show_id) }}" 
+                               class="btn btn-sm btn-outline-danger" 
+                               onclick="return confirm('Cancel this show? All bookings will be cancelled.')">
+                                Cancel
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center py-3">No ongoing shows found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm opacity-75">
+    <div class="card-header bg-light">
+        <h4 class="mb-0 text-muted"><i class="bi bi-clock-history"></i> Passed Shows</h4>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-secondary mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Event</th>
+                        <th>Venue</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for show in past_shows %}
+                    <tr>
+                        <td>{{ show.show_id }}</td>
+                        <td>{{ show.event_name }}</td>
+                        <td>{{ show.venue_name }}, {{ show.city }}</td>
+                        <td>{{ show.show_date }} | {{ show.show_time }}</td>
+                        <td><span class="badge bg-secondary">Ended</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center py-3">No past shows found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

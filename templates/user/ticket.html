@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket - {{ booking.event_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background: #f0f2f5; font-family: 'Courier New', monospace; }
+        .ticket {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 2px dashed #ccc;
+        }
+        .ticket-header {
+            background: #212529;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ticket-body { padding: 40px; }
+        .ticket-footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-top: 2px dashed #ccc;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        @media print {
+            body { background: white; }
+            .ticket { margin: 0; box-shadow: none; border: 2px solid #000; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="text-center mt-4 no-print">
+        <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Print / Save as PDF</button>
+        <a href="{{ url_for('my_bookings') }}" class="btn btn-secondary ms-2">Back</a>
+    </div>
+
+    <div class="ticket">
+        <div class="ticket-header">
+            <div>
+                <h2 class="m-0 fw-bold"><i class="bi bi-ticket-perforated"></i> TicketMaster</h2>
+            </div>
+            <div class="text-end">
+                <small class="d-block text-white-50">Booking ID</small>
+                <span class="fs-5 font-monospace">#{{ booking.booking_id }}</span>
+            </div>
+        </div>
+        
+        <div class="ticket-body">
+            <div class="row mb-5">
+                <div class="col-md-8">
+                    <h1 class="display-6 fw-bold mb-3">{{ booking.event_name }}</h1>
+                    <p class="fs-5 mb-1"><i class="bi bi-geo-alt-fill text-danger"></i> {{ booking.venue_name }}</p>
+                    <p class="text-muted">{{ booking.address }}, {{ booking.city }}</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <div class="p-3 bg-light rounded text-center border">
+                        <small class="text-muted text-uppercase fw-bold d-block">Date</small>
+                        <span class="fs-4 fw-bold">{{ booking.show_date }}</span>
+                        <hr class="my-2">
+                        <small class="text-muted text-uppercase fw-bold d-block">Time</small>
+                        <span class="fs-4 fw-bold">{{ booking.show_time }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 mb-3">Ticket Details</h5>
+                    <table class="table table-borderless">
+                        <thead class="text-muted small text-uppercase">
+                            <tr>
+                                <th>Type</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for seat in seats %}
+                            <tr>
+                                <td class="fw-bold">{{ seat.seat_class }}</td>
+                                <td class="text-center">{{ seat.quantity }}</td>
+                                <td class="text-end">₹{{ seat.price_per_seat }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="border-top">
+                                <td colspan="2" class="fw-bold text-end pt-3">Total Paid</td>
+                                <td class="fw-bold text-end pt-3 fs-5">₹{{ booking.final_amount }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="alert alert-warning d-flex align-items-center small">
+                        <i class="bi bi-info-circle me-2 fs-5"></i>
+                        <div>
+                            <strong>Note:</strong> Please show this ticket at the venue entrance. Gates close 30 minutes before the show.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ticket-footer">
+            <p class="mb-1">Transaction ID: {{ booking.transaction_id }} | Booked by: {{ booking.user_name }}</p>
+            <p class="mb-0">&copy; 2024 TicketMaster. Have a great show!</p>
+        </div>
+    </div>
+</body>
+</html>

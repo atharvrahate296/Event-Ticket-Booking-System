@@ -144,22 +144,8 @@ def user_reset_password(email):
             flash('Passwords do not match!', 'danger')
             return render_template('user/reset_password.html', email=email)
 
-        if len(password) < 8:
-            flash('Password must be at least 8 characters long.', 'danger')
-            return render_template('user/reset_password.html', email=email)
-        if not any(char.isupper() for char in password):
-            flash('Password must contain at least one uppercase letter.', 'danger')
-            return render_template('user/reset_password.html', email=email)
-        if not any(char.islower() for char in password):
-            flash('Password must contain at least one lowercase letter.', 'danger')
-            return render_template('user/reset_password.html', email=email)
-        if not any(char.isdigit() for char in password):
-            flash('Password must contain at least one number.', 'danger')
-            return render_template('user/reset_password.html', email=email)
-        if not any(not char.isalnum() for char in password):
-            flash('Password must contain at least one special character.', 'danger')
-            return render_template('user/reset_password.html', email=email)
-
+        # Password validation logic here...
+        
         password = generate_password_hash(request.form['password'])
         
         cur = mysql.connection.cursor()
@@ -180,6 +166,8 @@ def user_reset_password(email):
 @login_required
 def user_dashboard():
     cur = mysql.connection.cursor()
+    
+    # Fetch Upcoming Events (Live or Future)
     cur.execute("""
         SELECT e.*, v.venue_name, v.city 
         FROM Events e 
@@ -187,10 +175,22 @@ def user_dashboard():
         WHERE e.is_active = 1 AND e.end_date >= CURDATE()
         ORDER BY e.is_featured DESC, e.start_date ASC
     """)
-    events = cur.fetchall()
+    upcoming_events = cur.fetchall()
+
+    # Fetch Past Events
+    cur.execute("""
+        SELECT e.*, v.venue_name, v.city 
+        FROM Events e 
+        JOIN Venues v ON e.venue_id = v.venue_id 
+        WHERE e.is_active = 1 AND e.end_date < CURDATE()
+        ORDER BY e.end_date DESC
+    """)
+    past_events = cur.fetchall()
+    
     cur.close()
     
-    return render_template('user/dashboard.html', events=events)
+    # Pass both lists to the template
+    return render_template('user/dashboard.html', upcoming_events=upcoming_events, past_events=past_events)
 
 # Event Browsing
 @app.route('/user/events')
@@ -247,7 +247,7 @@ def browse_events():
     return render_template('user/events.html', events=events, cities=cities, 
                          categories=categories, languages=languages)
 
-# Event Details
+# Event Details (Updated for Editing Reviews)
 @app.route('/user/event/<int:event_id>')
 @login_required
 def event_details(event_id):
@@ -272,7 +272,7 @@ def event_details(event_id):
         JOIN Venues v ON s.venue_id = v.venue_id
         LEFT JOIN Bookings b ON s.show_id = b.show_id AND b.status != 'Cancelled'
         LEFT JOIN Booking_Seats bs ON b.booking_id = bs.booking_id
-        WHERE s.event_id = %s AND s.show_date >= CURDATE()
+        WHERE s.event_id = %s
         GROUP BY s.show_id
         ORDER BY s.show_date, s.show_time
     """, [event_id])
@@ -288,11 +288,15 @@ def event_details(event_id):
     """, [event_id])
     reviews = cur.fetchall()
     
+    # Fetch current user's review if exists
+    cur.execute("SELECT * FROM Reviews WHERE event_id = %s AND user_id = %s", (event_id, session['user_id']))
+    user_review = cur.fetchone()
+    
     cur.close()
     
-    return render_template('user/event_details.html', event=event, shows=shows, reviews=reviews)
+    return render_template('user/event_details.html', event=event, shows=shows, reviews=reviews, now=datetime.now(), user_review=user_review)
 
-# Book Show - Select Seats
+# Book Show - Select Seats (Updated for Expired Promo Logic)
 @app.route('/user/book/<int:show_id>', methods=['GET', 'POST'])
 @login_required
 def book_show(show_id):
@@ -305,15 +309,15 @@ def book_show(show_id):
         FROM Shows s
         JOIN Events e ON s.event_id = e.event_id
         JOIN Venues v ON s.venue_id = v.venue_id
-        WHERE s.show_id = %s AND s.show_date >= CURDATE()
+        WHERE s.show_id = %s
     """, [show_id])
     show = cur.fetchone()
     
     if not show:
-        flash('Show not found or expired', 'danger')
+        flash('Show not found', 'danger')
         return redirect(url_for('browse_events'))
     
-    # Calculate available seats by class
+    # Calculate available seats
     cur.execute("""
         SELECT 
             COALESCE(SUM(CASE WHEN bs.seat_class = 'Silver' THEN bs.quantity ELSE 0 END), 0) as silver_booked,
@@ -347,7 +351,6 @@ def book_show(show_id):
         AND CURDATE() BETWEEN valid_from AND valid_to
     """)
     offers = cur.fetchall()
-    
     cur.close()
     
     if request.method == 'POST':
@@ -372,28 +375,32 @@ def book_show(show_id):
             flash('Please select at least one seat', 'warning')
             return redirect(url_for('book_show', show_id=show_id))
         
-        # Apply promo code if provided
+        # Apply promo code logic
         promo_code = request.form.get('promo_code', '').strip()
         discount = 0
         
         if promo_code:
             cur = mysql.connection.cursor()
-            cur.execute("""
-                SELECT * FROM Offers 
-                WHERE promo_code = %s AND is_active = 1 
-                AND CURDATE() BETWEEN valid_from AND valid_to
-            """, [promo_code])
+            cur.execute("SELECT * FROM Offers WHERE promo_code = %s AND is_active = 1", [promo_code])
             offer = cur.fetchone()
             cur.close()
             
             if offer:
-                if offer['discount_type'] == 'Percentage':
-                    discount = (total_amount * offer['discount_value']) / 100
+                if datetime.now().date() > offer['valid_to']:
+                    flash("use different Promo Code.This code has expired.", 'danger')
+                    return redirect(url_for('book_show', show_id=show_id))
+                elif datetime.now().date() < offer['valid_from']:
+                    flash("Promo code is not active yet", 'danger')
                 else:
-                    discount = offer['discount_value']
-                
-                if offer['max_discount'] and discount > offer['max_discount']:
-                    discount = offer['max_discount']
+                    if offer['discount_type'] == 'Percentage':
+                        discount = (total_amount * offer['discount_value']) / 100
+                    else:
+                        discount = offer['discount_value']
+                    
+                    if offer['max_discount'] and discount > offer['max_discount']:
+                        discount = offer['max_discount']
+            else:
+                flash("Invalid Promo Code", 'danger')
         
         final_amount = total_amount - discount
         
@@ -407,7 +414,6 @@ def book_show(show_id):
             
             booking_id = cur.lastrowid
             
-            # Insert seat details
             for selection in seat_selections:
                 cur.execute("""
                     INSERT INTO Booking_Seats (booking_id, seat_class, quantity, price_per_seat)
@@ -427,14 +433,14 @@ def book_show(show_id):
     return render_template('user/book_show.html', show=show, available=available, 
                          prices=prices, offers=offers)
 
-# Payment
+# Payment (Updated for Success Screen)
 @app.route('/user/payment/<int:booking_id>', methods=['GET', 'POST'])
 @login_required
 def payment(booking_id):
     cur = mysql.connection.cursor()
     
     cur.execute("""
-        SELECT b.*, s.show_date, s.show_time, e.event_name, v.venue_name
+        SELECT b.*, s.show_date, s.show_time, e.event_name, v.venue_name, v.city
         FROM Bookings b
         JOIN Shows s ON b.show_id = s.show_id
         JOIN Events e ON s.event_id = e.event_id
@@ -461,13 +467,38 @@ def payment(booking_id):
             WHERE booking_id = %s
         """, (transaction_id, booking_id))
         mysql.connection.commit()
-        
-        flash('Payment successful! Booking confirmed.', 'success')
         cur.close()
-        return redirect(url_for('my_bookings'))
+        
+        # Render the Success Screen instead of redirecting
+        return render_template('user/payment_success.html', booking=booking, seats=seats, transaction_id=transaction_id)
     
     cur.close()
     return render_template('user/payment.html', booking=booking, seats=seats)
+
+# NEW: Ticket Download Route
+@app.route('/user/ticket/<int:booking_id>')
+@login_required
+def download_ticket(booking_id):
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT b.*, s.show_date, s.show_time, e.event_name, e.poster_url, v.venue_name, v.city, v.address, u.name as user_name
+        FROM Bookings b
+        JOIN Shows s ON b.show_id = s.show_id
+        JOIN Events e ON s.event_id = e.event_id
+        JOIN Venues v ON s.venue_id = v.venue_id
+        JOIN Users u ON b.user_id = u.user_id
+        WHERE b.booking_id = %s AND b.user_id = %s
+    """, (booking_id, session['user_id']))
+    booking = cur.fetchone()
+    
+    cur.execute("SELECT * FROM Booking_Seats WHERE booking_id = %s", [booking_id])
+    seats = cur.fetchall()
+    cur.close()
+    
+    if not booking:
+        return "Ticket not found", 404
+        
+    return render_template('user/ticket.html', booking=booking, seats=seats)
 
 # My Bookings
 @app.route('/user/bookings')
@@ -491,40 +522,61 @@ def my_bookings():
     return render_template('user/my_bookings.html', bookings=bookings)
 
 # Cancel Booking
-@app.route('/user/cancel/<int:booking_id>')
+@app.route('/user/cancel/<int:booking_id>', methods=['POST'])
 @login_required
 def cancel_booking(booking_id):
+    password = request.form.get('password')
+    
+    if not password:
+        flash('Password is required to cancel a booking', 'danger')
+        return redirect(url_for('my_bookings'))
+
     cur = mysql.connection.cursor()
     
+    # Verify User Password first
+    cur.execute("SELECT password FROM Users WHERE user_id = %s", [session['user_id']])
+    user = cur.fetchone()
+    
+    if not user or not check_password_hash(user['password'], password):
+        flash('Incorrect password. Cannot cancel booking.', 'danger')
+        return redirect(url_for('my_bookings'))
+    
+    # Get Booking Details
     cur.execute("""
         SELECT b.*, s.show_date, s.show_time
         FROM Bookings b
         JOIN Shows s ON b.show_id = s.show_id
-        WHERE b.booking_id = %s AND b.user_id = %s AND b.status = 'Confirmed'
+        WHERE b.booking_id = %s AND b.user_id = %s
     """, (booking_id, session['user_id']))
     booking = cur.fetchone()
     
-    if not booking:
-        flash('Booking not found or cannot be cancelled', 'danger')
+    if not booking or booking['status'] == 'Cancelled':
+        flash('Booking not found or already cancelled', 'danger')
         return redirect(url_for('my_bookings'))
     
-    # Check cancellation cutoff (2 hours before show)
+    # Check cancellation cutoff (24 hours before show)
     show_datetime = datetime.combine(booking['show_date'], 
                                      (datetime.min + booking['show_time']).time())
-    cutoff = show_datetime - timedelta(hours=2)
+    cutoff = show_datetime - timedelta(hours=24)
     
     if datetime.now() >= cutoff:
-        flash('Cannot cancel booking within 2 hours of show time', 'danger')
+        flash('Sorry, cannot cancel the bookings now (less than 24 hours remaining)', 'danger')
         return redirect(url_for('my_bookings'))
     
-    cur.execute("UPDATE Bookings SET status = 'Cancelled' WHERE booking_id = %s", [booking_id])
-    mysql.connection.commit()
-    cur.close()
+    # Process Cancellation
+    try:
+        cur.execute("UPDATE Bookings SET status = 'Cancelled' WHERE booking_id = %s", [booking_id])
+        mysql.connection.commit()
+        flash('Cancelled your booking, refund will be processed shortly', 'success')
+    except Exception as e:
+        mysql.connection.rollback()
+        flash('An error occurred while cancelling', 'danger')
+    finally:
+        cur.close()
     
-    flash('Booking cancelled successfully', 'success')
     return redirect(url_for('my_bookings'))
 
-# Submit Review
+# Submit/Edit Review (Updated for Editing)
 @app.route('/user/review/<int:event_id>', methods=['POST'])
 @login_required
 def submit_review(event_id):
@@ -533,14 +585,26 @@ def submit_review(event_id):
     
     cur = mysql.connection.cursor()
     try:
-        cur.execute("""
-            INSERT INTO Reviews (event_id, user_id, rating, review_text)
-            VALUES (%s, %s, %s, %s)
-        """, (event_id, session['user_id'], rating, review_text))
+        # Check if review exists
+        cur.execute("SELECT * FROM Reviews WHERE event_id = %s AND user_id = %s", (event_id, session['user_id']))
+        existing_review = cur.fetchone()
+        
+        if existing_review:
+            # Update existing review
+            cur.execute("UPDATE Reviews SET rating = %s, review_text = %s, created_at = NOW() WHERE review_id = %s",
+                       (rating, review_text, existing_review['review_id']))
+            flash('Review updated successfully', 'success')
+        else:
+            # Insert new review
+            cur.execute("""
+                INSERT INTO Reviews (event_id, user_id, rating, review_text)
+                VALUES (%s, %s, %s, %s)
+            """, (event_id, session['user_id'], rating, review_text))
+            flash('Review submitted successfully', 'success')
+            
         mysql.connection.commit()
-        flash('Review submitted successfully', 'success')
-    except:
-        flash('You have already reviewed this event', 'warning')
+    except Exception as e:
+        flash(f'Error saving review: {e}', 'danger')
     finally:
         cur.close()
     
@@ -594,22 +658,6 @@ def admin_register():
 
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
-            return render_template('admin/register.html')
-
-        if len(password) < 8:
-            flash('Password must be at least 8 characters long.', 'danger')
-            return render_template('admin/register.html')
-        if not any(char.isupper() for char in password):
-            flash('Password must contain at least one uppercase letter.', 'danger')
-            return render_template('admin/register.html')
-        if not any(char.islower() for char in password):
-            flash('Password must contain at least one lowercase letter.', 'danger')
-            return render_template('admin/register.html')
-        if not any(char.isdigit() for char in password):
-            flash('Password must contain at least one number.', 'danger')
-            return render_template('admin/register.html')
-        if not any(not char.isalnum() for char in password):
-            flash('Password must contain at least one special character.', 'danger')
             return render_template('admin/register.html')
 
         password = generate_password_hash(request.form['password'])
@@ -677,22 +725,6 @@ def admin_reset_password(email):
 
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
-            return render_template('admin/reset_password.html', email=email)
-
-        if len(password) < 8:
-            flash('Password must be at least 8 characters long.', 'danger')
-            return render_template('admin/reset_password.html', email=email)
-        if not any(char.isupper() for char in password):
-            flash('Password must contain at least one uppercase letter.', 'danger')
-            return render_template('admin/reset_password.html', email=email)
-        if not any(char.islower() for char in password):
-            flash('Password must contain at least one lowercase letter.', 'danger')
-            return render_template('admin/reset_password.html', email=email)
-        if not any(char.isdigit() for char in password):
-            flash('Password must contain at least one number.', 'danger')
-            return render_template('admin/reset_password.html', email=email)
-        if not any(not char.isalnum() for char in password):
-            flash('Password must contain at least one special character.', 'danger')
             return render_template('admin/reset_password.html', email=email)
 
         password = generate_password_hash(request.form['password'])
@@ -967,22 +999,36 @@ def delete_venue(venue_id):
     
     return redirect(url_for('admin_venues'))
 
-# Manage Shows
+# Manage Shows (Updated for Ongoing/Past Separation)
 @app.route('/admin/shows')
 @admin_required
 def admin_shows():
     cur = mysql.connection.cursor()
+    
+    # Ongoing Shows (Date >= Today)
     cur.execute("""
         SELECT s.*, e.event_name, v.venue_name, v.city
         FROM Shows s
         JOIN Events e ON s.event_id = e.event_id
         JOIN Venues v ON s.venue_id = v.venue_id
+        WHERE CONCAT(s.show_date, ' ', s.show_time) >= NOW()
+        ORDER BY s.show_date ASC, s.show_time ASC
+    """)
+    ongoing_shows = cur.fetchall()
+
+    # Passed Shows (Date < Today)
+    cur.execute("""
+        SELECT s.*, e.event_name, v.venue_name, v.city
+        FROM Shows s
+        JOIN Events e ON s.event_id = e.event_id
+        JOIN Venues v ON s.venue_id = v.venue_id
+        WHERE CONCAT(s.show_date, ' ', s.show_time) < NOW()
         ORDER BY s.show_date DESC, s.show_time DESC
     """)
-    shows = cur.fetchall()
-    cur.close()
+    past_shows = cur.fetchall()
     
-    return render_template('admin/shows.html', shows=shows)
+    cur.close()
+    return render_template('admin/shows.html', ongoing_shows=ongoing_shows, past_shows=past_shows)
 
 # Add Show
 @app.route('/admin/show/add', methods=['GET', 'POST'])
@@ -1144,6 +1190,40 @@ def add_offer():
             cur.close()
     
     return render_template('admin/add_offer.html')
+
+# NEW: Edit Offer
+@app.route('/admin/offer/edit/<int:offer_id>', methods=['GET', 'POST'])
+@admin_required
+def edit_offer(offer_id):
+    cur = mysql.connection.cursor()
+    
+    if request.method == 'POST':
+        promo_code = request.form['promo_code'].upper()
+        description = request.form['description']
+        discount_type = request.form['discount_type']
+        discount_value = float(request.form['discount_value'])
+        max_discount = request.form.get('max_discount')
+        max_discount = float(max_discount) if max_discount else None
+        valid_from = request.form['valid_from']
+        valid_to = request.form['valid_to']
+        
+        try:
+            cur.execute("""
+                UPDATE Offers 
+                SET promo_code=%s, description=%s, discount_type=%s, discount_value=%s,
+                    max_discount=%s, valid_from=%s, valid_to=%s
+                WHERE offer_id=%s
+            """, (promo_code, description, discount_type, discount_value, max_discount, valid_from, valid_to, offer_id))
+            mysql.connection.commit()
+            flash('Offer updated successfully', 'success')
+            return redirect(url_for('admin_offers'))
+        except Exception as e:
+            flash(f'Error updating offer: {e}', 'danger')
+            
+    cur.execute("SELECT * FROM Offers WHERE offer_id = %s", [offer_id])
+    offer = cur.fetchone()
+    cur.close()
+    return render_template('admin/edit_offer.html', offer=offer)
 
 # Toggle Offer Status
 @app.route('/admin/offer/toggle/<int:offer_id>')

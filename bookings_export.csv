@@ -1,0 +1,10 @@
+Booking ID,Booking Date,User Name,Email,Event,Venue,Show Date,Show Time,Total Amount,Discount,Final Amount,Status,Transaction ID
+9,2025-12-17 01:11:01,Kamlesh Kamlakar,kamleshhh22@gmail.com,The Phantom of Opera,City Auditorium,2025-12-25,18:00:00,11650.00,2000.00,9650.00,Confirmed,TXN884747D
+8,2025-12-17 01:10:52,Kamlesh Kamlakar,kamleshhh22@gmail.com,The Phantom of Opera,City Auditorium,2025-12-25,18:00:00,6850.00,1370.00,5480.00,Confirmed,TXN66T78H
+7,2025-12-17 01:05:46,Kamlesh Kamlakar,kamleshhh22@gmail.com,The Phantom of Opera,City Auditorium,2025-12-25,18:00:00,12100.00,60.00,12040.00,Confirmed,TXN12345999
+6,2025-12-17 01:03:43,Kamlesh Kamlakar,kamleshhh22@gmail.com,Bollywood Nights,Grand Theatre,2025-12-26,10:00:00,16900.00,60.00,16840.00,Confirmed,TX1234559
+5,2025-12-17 01:03:30,Kamlesh Kamlakar,kamleshhh22@gmail.com,Bollywood Nights,Grand Theatre,2025-12-26,10:00:00,16900.00,0.00,16900.00,Confirmed,TXN884788D
+4,2025-12-17 00:50:12,Ketan,ketan123@gmail.com,Classical Fusion,City Auditorium,2025-12-31,20:00:00,3460.00,300.00,3160.00,Confirmed,TXN884767D
+3,2025-12-16 23:13:03,Atharv Rahate,atharvdrahate@gmail.com,Aavishkar,Royal Arena,2025-12-18,19:12:00,38700.00,1000.00,37700.00,Cancelled,TX1234555
+2,2025-12-16 23:12:21,Atharv Rahate,atharvdrahate@gmail.com,Aavishkar,Royal Arena,2025-12-18,19:12:00,38700.00,0.00,38700.00,Confirmed,TXN230978
+1,2025-12-16 20:20:27,Atharv Rahate,atharvdrahate@gmail.com,Rock Festival 2025,Grand Theatre,2025-12-16,17:00:00,2100.00,0.00,2100.00,Confirmed,TXN230978
