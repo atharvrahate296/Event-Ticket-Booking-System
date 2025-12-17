@@ -95,7 +95,7 @@ def user_register():
     
     return render_template('user/register.html')
 
-# User Login
+# User Login (Updated for Specific Blocked Error)
 @app.route('/user/login', methods=['GET', 'POST'])
 def user_login():
     if request.method == 'POST':
@@ -103,18 +103,28 @@ def user_login():
         password = request.form['password']
         
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM Users WHERE email = %s AND is_blocked = 0", [email])
+        # CHANGED: Removed "AND is_blocked = 0" so we can find the user even if blocked
+        cur.execute("SELECT * FROM Users WHERE email = %s", [email])
         user = cur.fetchone()
         cur.close()
         
-        if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['user_id']
-            session['user_name'] = user['name']
-            session['user_type'] = 'user'
-            flash('Login successful!', 'success')
-            return redirect(url_for('user_dashboard'))
+        if user:
+            # CHECK 1: Is the user blocked?
+            if user['is_blocked'] == 1:
+                flash('Cannot login you in, Your ID is blocked by the admin', 'danger')
+                return redirect(url_for('user_login'))
+            
+            # CHECK 2: Is the password correct?
+            if check_password_hash(user['password'], password):
+                session['user_id'] = user['user_id']
+                session['user_name'] = user['name']
+                session['user_type'] = 'user'
+                flash('Login successful!', 'success')
+                return redirect(url_for('user_dashboard'))
+            else:
+                flash('Invalid credentials', 'danger')
         else:
-            flash('Invalid credentials or account blocked', 'danger')
+            flash('Invalid credentials', 'danger')
     
     return render_template('user/login.html')
 
@@ -433,18 +443,19 @@ def book_show(show_id):
     return render_template('user/book_show.html', show=show, available=available, 
                          prices=prices, offers=offers)
 
-# Payment (Updated for Success Screen)
+# Payment (Updated for Duplicate Transaction Check)
 @app.route('/user/payment/<int:booking_id>', methods=['GET', 'POST'])
 @login_required
 def payment(booking_id):
     cur = mysql.connection.cursor()
     
+    # Fetch Booking Details
     cur.execute("""
-        SELECT b.*, s.show_date, s.show_time, e.event_name, v.venue_name, v.city
-        FROM Bookings b
-        JOIN Shows s ON b.show_id = s.show_id
-        JOIN Events e ON s.event_id = e.event_id
-        JOIN Venues v ON s.venue_id = v.venue_id
+        SELECT b.*, s.show_date, s.show_time, e.event_name, v.venue_name, v.city 
+        FROM Bookings b 
+        JOIN Shows s ON b.show_id = s.show_id 
+        JOIN Events e ON s.event_id = e.event_id 
+        JOIN Venues v ON s.venue_id = v.venue_id 
         WHERE b.booking_id = %s AND b.user_id = %s
     """, (booking_id, session['user_id']))
     booking = cur.fetchone()
@@ -459,8 +470,20 @@ def payment(booking_id):
     seats = cur.fetchall()
     
     if request.method == 'POST':
-        transaction_id = request.form['transaction_id']
+        transaction_id = request.form['transaction_id'].strip()
         
+        # --- NEW LOGIC START: Check for Duplicate Transaction ID ---
+        cur.execute("SELECT booking_id FROM Bookings WHERE transaction_id = %s", [transaction_id])
+        duplicate_entry = cur.fetchone()
+
+        if duplicate_entry:
+            # If a record is found, it means the ID is used.
+            flash('Invalid Transaction! Duplicate ID', 'danger')
+            # Stop execution here and reload the page
+            return redirect(url_for('payment', booking_id=booking_id))
+        # --- NEW LOGIC END ---
+
+        # If check passes, proceed to confirm booking
         cur.execute("""
             UPDATE Bookings 
             SET status = 'Confirmed', transaction_id = %s, payment_date = NOW()
@@ -469,7 +492,7 @@ def payment(booking_id):
         mysql.connection.commit()
         cur.close()
         
-        # Render the Success Screen instead of redirecting
+        # Render the Success Screen
         return render_template('user/payment_success.html', booking=booking, seats=seats, transaction_id=transaction_id)
     
     cur.close()
